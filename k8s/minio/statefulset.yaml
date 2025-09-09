@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: minio
+  namespace: infra
+spec:
+  serviceName: minio
+  replicas: 1
+  selector:
+    matchLabels: { app: minio }
+  template:
+    metadata:
+      labels: { app: minio }
+    spec:
+      containers:
+      - name: minio
+        image: quay.io/minio/minio:RELEASE.2025-01-05T00-00-00Z
+        args: ["server","/data","--console-address",":9001"]
+        env:
+        - name: MINIO_ROOT_USER
+          valueFrom:
+            secretKeyRef:
+              name: minio-credentials
+              key: AWS_ACCESS_KEY_ID
+        - name: MINIO_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: minio-credentials
+              key: AWS_SECRET_ACCESS_KEY
+        ports:
+        - containerPort: 9000
+        - containerPort: 9001
+        volumeMounts:
+        - name: data
+          mountPath: /data
+  volumeClaimTemplates:
+  - metadata: { name: data }
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: nfs-rwx
+      resources: { requests: { storage: 200Gi } }

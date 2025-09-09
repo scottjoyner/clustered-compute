@@ -1,0 +1,40 @@
+- name: Ensure Python and venv
+  apt:
+    name: [python3, python3-venv, python3-pip]
+    state: present
+  when: ansible_os_family == "Debian"
+
+- name: Create ray user
+  user: name=ray create_home=yes
+
+- name: Create venv
+  command: python3 -m venv /opt/ray-venv creates=/opt/ray-venv
+
+- name: Install Ray and deps
+  command: /opt/ray-venv/bin/pip install -U pip ray[default]==2.31.0 boto3 s3fs
+
+- name: Systemd unit
+  copy:
+    dest: /etc/systemd/system/ray-worker.service
+    content: |
+      [Unit]
+      Description=Ray Worker
+      After=network-online.target
+      Wants=network-online.target
+
+      [Service]
+      User=ray
+      Environment=PATH=/opt/ray-venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin
+      Environment=AWS_ENDPOINT_URL=http://minio.infra.svc.cluster.local:9000
+      ExecStart=/opt/ray-venv/bin/ray start --address={{ ray_head_address | default('192.168.50.10:30379') }} --num-cpus={{ num_cpus | default(2) }}
+      Restart=always
+      RestartSec=5
+
+      [Install]
+      WantedBy=multi-user.target
+
+- name: Enable + start worker
+  systemd:
+    name: ray-worker
+    enabled: yes
+    state: started

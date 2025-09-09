@@ -1,0 +1,4 @@
+- hosts: workers_macos
+  become: no
+  roles:
+    - ray_worker_macos

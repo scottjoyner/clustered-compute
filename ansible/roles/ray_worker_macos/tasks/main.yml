@@ -1,0 +1,41 @@
+- name: Ensure Homebrew exists
+  shell: |
+    command -v brew || /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  args: { executable: /bin/bash }
+
+- name: Install Python
+  shell: brew install python@3.11
+
+- name: Create venv
+  shell: |
+    /opt/homebrew/bin/python3.11 -m venv ~/ray-venv || python3.11 -m venv ~/ray-venv
+
+- name: Install Ray and deps
+  shell: |
+    source ~/ray-venv/bin/activate && pip install -U pip ray[default]==2.31.0 boto3 s3fs
+
+- name: Create launchctl plist
+  copy:
+    dest: ~/Library/LaunchAgents/com.ray.worker.plist
+    content: |
+      <?xml version="1.0" encoding="UTF-8"?>
+      <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+      <plist version="1.0">
+      <dict>
+        <key>Label</key><string>com.ray.worker</string>
+        <key>ProgramArguments</key>
+        <array>
+          <string>{{ lookup('env','HOME') }}/ray-venv/bin/ray</string>
+          <string>start</string>
+          <string>--address={{ ray_head_address | default('192.168.50.10:30379') }}</string>
+          <string>--num-cpus</string><string>{{ num_cpus | default('2') }}</string>
+        </array>
+        <key>RunAtLoad</key><true/>
+        <key>KeepAlive</key><true/>
+        <key>StandardOutPath</key><string>{{ lookup('env','HOME') }}/ray-worker.log</string>
+        <key>StandardErrorPath</key><string>{{ lookup('env','HOME') }}/ray-worker.err</string>
+      </dict>
+      </plist>
+
+- name: Load launchctl
+  shell: launchctl load -w ~/Library/LaunchAgents/com.ray.worker.plist || launchctl kickstart -k gui/$UID/com.ray.worker

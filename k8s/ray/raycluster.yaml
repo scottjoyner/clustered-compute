@@ -1,0 +1,42 @@
+apiVersion: ray.io/v1
+kind: RayCluster
+metadata:
+  name: compute-ray
+  namespace: compute
+spec:
+  rayVersion: "2.31.0"
+  headGroupSpec:
+    rayStartParams:
+      port: "6379"
+      dashboard-port: "8265"
+    template:
+      spec:
+        nodeSelector: { role: control }
+        containers:
+        - name: ray-head
+          image: rayproject/ray:2.31.0-py310
+          command: ["/bin/bash","-lc","ray start --head --port=6379 --dashboard-port=8265 && sleep infinity"]
+          ports:
+            - containerPort: 6379
+            - containerPort: 8265
+          env:
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom: { secretKeyRef: { name: minio-credentials, key: AWS_ACCESS_KEY_ID } }
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom: { secretKeyRef: { name: minio-credentials, key: AWS_SECRET_ACCESS_KEY } }
+            - name: AWS_ENDPOINT_URL
+              value: http://minio.infra.svc.cluster.local:9000
+  workerGroupSpecs:
+  - groupName: std
+    replicas: 1
+    template:
+      spec:
+        nodeSelector: {}
+        containers:
+        - name: ray-worker
+          image: rayproject/ray:2.31.0-py310
+          command: ["/bin/bash","-lc","ray start --address=compute-ray-head-svc:6379 && sleep infinity"]
+          resources:
+            limits:
+              cpu: "4"
+              memory: "8Gi"

@@ -1,9 +1,19 @@
 # Home Supercomputer Starter Repo
 
 <!-- repo-entrypoint-guide:start -->
-> **How to approach this repository:** Begin with the [Contents](#contents) and [Quick Start](#quick-start), then inspect the runbook under `docs/` before provisioning K3s, NFS, Ray, or workers.
-> 
-> **Safety boundary:** Treat example cluster names and storage paths as placeholders. Verify node identity, firewall rules, credentials, capacity, and rollback procedures before joining machines or mounting existing disks.
+## Repository guide
+
+**How to approach this repository:** Begin with the [Contents](#contents) and [Quick Start](#quick-start), then inspect the runbook under `docs/` before provisioning K3s, NFS, Ray, or workers.
+
+**Safety boundary:** Treat example cluster names and storage paths as placeholders. Verify node identity, firewall rules, credentials, capacity, and rollback procedures before joining machines or mounting existing disks.
+
+### Find your way
+
+- [Contents](#contents)
+- [Quick Start](#quick-start)
+- [Namespaces](#namespaces)
+- [Secrets & Credentials](#secrets-credentials)
+- [Safety](#safety)
 <!-- repo-entrypoint-guide:end -->
 
 

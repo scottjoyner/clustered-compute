@@ -1,5 +1,12 @@
 # Home Supercomputer Starter Repo
 
+<!-- repo-entrypoint-guide:start -->
+> **How to approach this repository:** Begin with the [Contents](#contents) and [Quick Start](#quick-start), then inspect the runbook under `docs/` before provisioning K3s, NFS, Ray, or workers.
+> 
+> **Safety boundary:** Treat example cluster names and storage paths as placeholders. Verify node identity, firewall rules, credentials, capacity, and rollback procedures before joining machines or mounting existing disks.
+<!-- repo-entrypoint-guide:end -->
+
+
 Turn your heterogeneous devices into a single compute fabric without touching their internal disks.
 
 ## Contents
